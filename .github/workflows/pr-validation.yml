@@ -76,7 +76,6 @@ jobs:
             # If the env variable equals all, we run all tests
             - name: 'Check-only deploy delta changes - run all tests'
               run: |
-                  pwd
                   sfdx force:source:deploy -p "changed-sources/src" --checkonly --testlevel RunLocalTests  --json
 
             - name: 'Deploy destructive changes (if any)'

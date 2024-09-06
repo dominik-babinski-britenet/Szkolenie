@@ -45,5 +45,3 @@ trigger CreateOrderProducts on Order (after insert) {
     insert orderItemsToInsert;
 
 }
-
-
