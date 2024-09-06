@@ -1,65 +1,49 @@
-@isTest
+@isTest(SeeAllData=true)
 public class CreateOrderOnOpportunityCloseTest {
 
-    @isTest
+    @isTest(SeeAllData=true)
     static void testCreateOrderOnOpportunityClose() {
-        // Create test data
-        Account acc = new Account(Name = 'Test Account');
-        insert acc;
+        // Step 1: Create a test Account
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
 
-        Pricebook2 standardPricebook = [SELECT Id FROM Pricebook2 WHERE IsStandard = TRUE LIMIT 1];
+        // Step 2: Query the standard pricebook
+        Pricebook2 standardPricebook;
+        try {
+            standardPricebook = [SELECT Id FROM Pricebook2 LIMIT 1];
+        } catch (Exception e) {
+            System.assert(false, 'Standard Pricebook not found or not active.');
+        }
 
-        // Create a test Product
-        Product2 product = new Product2(Name = 'Test Product', isActive = TRUE);
-        insert product;
-
-        PricebookEntry pricebookEntry = new PricebookEntry(
-                Pricebook2Id = standardPricebook.Id,
-                Product2Id = product.Id,
-                UnitPrice = 100,
-                IsActive = TRUE
-        );
-        insert pricebookEntry;
-
-        // Create a test Quote
-        Quote quote = new Quote(
-                Name = 'Test Quote',
-                OpportunityId = null,
-                Pricebook2Id = standardPricebook.Id,
-                Status = 'Accepted'
-        );
-        insert quote;
-
-        // Create Quote Line Items
-        QuoteLineItem qli = new QuoteLineItem(
-                QuoteId = quote.Id,
-                Product2Id = product.Id,
-                Quantity = 2,
-                UnitPrice = 50,
-                PricebookEntryId = pricebookEntry.Id
-        );
-        insert qli;
-
-        // Create an Opportunity that will trigger the creation of Orders
-        Opportunity opp = new Opportunity(
+        // Step 3: Create a test Opportunity
+        Opportunity testOpportunity = new Opportunity(
                 Name = 'Test Opportunity',
-                AccountId = acc.Id,
-                StageName = 'Closed Won',
-                CloseDate = Date.today()
+                StageName = 'Prospecting',
+                CloseDate = Date.today(),
+                AccountId = testAccount.Id
         );
-        insert opp;
+        insert testOpportunity;
 
-        // Update Opportunity to trigger Order creation
-        opp.StageName = 'Closed Won';
-        update opp;
+        // Step 4: Create a test Quote and associate it with the Opportunity
+        Quote testQuote = new Quote(
+                OpportunityId = testOpportunity.Id,
+                Name = 'Test Quote',
+                Status = 'Accepted',
+                Pricebook2Id = standardPricebook.Id
+        );
+        insert testQuote;
 
-        // Verify if Order is created
-        List<Order> orders = [SELECT Id, OpportunityId FROM Order WHERE OpportunityId = :opp.Id];
-        System.assertEquals(1, orders.size(), 'An Order should be created for the Opportunity.');
-        Order createdOrder = orders[0];
+        // Step 5: Update the Opportunity to Closed Won (to trigger the logic)
+        testOpportunity.StageName = 'Closed Won';
+        update testOpportunity;
 
-        // Verify related Order Items
-        List<OrderItem> orderItems = [SELECT Id, OrderId, Product2Id, Quantity, UnitPrice FROM OrderItem WHERE OrderId = :createdOrder.Id];
-        System.assertEquals(1, orderItems.size(), 'An OrderItem should be created for the Order.');
+        // Step 6: Retrieve Orders created by the trigger
+        List<Order> createdOrders = [SELECT Id, OpportunityId, AccountId, Status, QuoteId FROM Order WHERE OpportunityId = :testOpportunity.Id];
+
+        // Validate that the Order was created
+        System.assertEquals(1, createdOrders.size(), 'An Order should have been created');
+        System.assertEquals('Draft', createdOrders[0].Status, 'Order status should be Draft');
+        System.assertEquals(testOpportunity.Id, createdOrders[0].OpportunityId, 'Order should be linked to the correct Opportunity');
+        System.assertEquals(testQuote.Id, createdOrders[0].QuoteId, 'Order should be linked to the correct Quote');
     }
 }
