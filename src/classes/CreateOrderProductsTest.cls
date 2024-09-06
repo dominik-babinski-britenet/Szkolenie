@@ -85,14 +85,14 @@ public class CreateOrderProductsTest {
     }
 
     @isTest
-    static void testOrderWithNonexistentQuote() {
+    static void testOrderWithInvalidQuote() {
         // Create test data
-        Account acc = new Account(Name = 'Test Account Nonexistent Quote');
+        Account acc = new Account(Name = 'Test Account Invalid Quote');
         insert acc;
 
         // Create an Order with a non-existent QuoteId
         Order order = new Order(
-                Name = 'Test Order Nonexistent Quote',
+                Name = 'Test Order Invalid Quote',
                 AccountId = acc.Id,
                 EffectiveDate = Date.today(),
                 Status = 'Draft',
