@@ -17,6 +17,9 @@ jobs:
               with:
                 node-version: '21'
 
+            - name: Verify Node.js version
+              run: node --version  # Check if Node 21.x is being used
+
             - name: 'Checkout source code'
               uses: actions/checkout@v4
               with:
