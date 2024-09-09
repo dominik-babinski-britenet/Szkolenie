@@ -8,8 +8,8 @@ Referenced Packages      # Eclipse
 
 build.properties         # Force.com Migration Tool
 
-/IlluminatedCloud        # Illuminated Cloud
-.idea/                   # IntelliJ IDEA (Illuminated Cloud)
+/IlluminatedCloud/      # Illuminated Cloud
+/.idea/                   # IntelliJ IDEA (Illuminated Cloud)
 
 venv/                    # Python
 *.pyc                    # Python
